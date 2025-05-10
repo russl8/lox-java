@@ -16,6 +16,10 @@ public class Scanner {
     private int current = 0;
     private int line = 1;
 
+    /**
+     * Init scanner using source code.
+     * @param source source code in string format.
+     */
     Scanner(String source) {
         this.source = source;
     }
@@ -50,11 +54,36 @@ public class Scanner {
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
             case '*': addToken(STAR); break;
+            case '!':
+                addToken(match('=') ? BANG_EQUAL : BANG);
+                break;
+            case '<':
+                addToken(match('=') ? LESS_EQUAL : LESS);
+                break;
+            case '>':
+                addToken(match('=') ? GREATER_EQUAL : GREATER);
+                break;
+            case '=':
+                addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+                break;
             default:
                 // reports the error but keeps scanning to capture ALL errors.
                 Lox.error(line,"Unexpected character.");
                 break;
         }
+    }
+
+    /**
+     * Checks if the next character in source matches the expected token.
+     *
+     * @param expected the expected token.
+     * @return
+     */
+    private boolean match(char expected) {
+        if (source.charAt(current) != expected) return false;
+        if (isAtEnd()) return false;
+        advance();
+        return true;
     }
 
     /**
