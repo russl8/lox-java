@@ -54,6 +54,22 @@ public class Scanner {
             case '+': addToken(PLUS); break;
             case ';': addToken(SEMICOLON); break;
             case '*': addToken(STAR); break;
+            case ' ':
+            case '\r':
+            case '\t':
+                break;
+            case '\n':
+                line++;
+                break;
+            case '/':
+                // if comment, advance until EOL.
+                if (match('/')) {
+                    while (peek() != '\n' && !isAtEnd()) advance();
+
+                } else {
+                    addToken(SLASH);
+                }
+                break;
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
@@ -71,6 +87,16 @@ public class Scanner {
                 Lox.error(line,"Unexpected character.");
                 break;
         }
+    }
+
+    /**
+     * Look at current char without advancing.
+     * @return
+     */
+    private char peek() {
+        if(isAtEnd()) return ('\0');
+
+        return  source.charAt(current);
     }
 
     /**
