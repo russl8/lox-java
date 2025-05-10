@@ -18,6 +18,7 @@ public class Scanner {
 
     /**
      * Init scanner using source code.
+     *
      * @param source source code in string format.
      */
     Scanner(String source) {
@@ -44,16 +45,36 @@ public class Scanner {
         char c = advance();
 
         switch (c) {
-            case '(': addToken(LEFT_PAREN); break;
-            case ')': addToken(RIGHT_PAREN); break;
-            case '{': addToken(LEFT_BRACE); break;
-            case '}': addToken(RIGHT_BRACE); break;
-            case ',': addToken(COMMA); break;
-            case '.': addToken(DOT); break;
-            case '-': addToken(MINUS); break;
-            case '+': addToken(PLUS); break;
-            case ';': addToken(SEMICOLON); break;
-            case '*': addToken(STAR); break;
+            case '(':
+                addToken(LEFT_PAREN);
+                break;
+            case ')':
+                addToken(RIGHT_PAREN);
+                break;
+            case '{':
+                addToken(LEFT_BRACE);
+                break;
+            case '}':
+                addToken(RIGHT_BRACE);
+                break;
+            case ',':
+                addToken(COMMA);
+                break;
+            case '.':
+                addToken(DOT);
+                break;
+            case '-':
+                addToken(MINUS);
+                break;
+            case '+':
+                addToken(PLUS);
+                break;
+            case ';':
+                addToken(SEMICOLON);
+                break;
+            case '*':
+                addToken(STAR);
+                break;
             case ' ':
             case '\r':
             case '\t':
@@ -70,6 +91,9 @@ public class Scanner {
                     addToken(SLASH);
                 }
                 break;
+            case '"':
+                string();
+                break;
             case '!':
                 addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
@@ -83,20 +107,67 @@ public class Scanner {
                 addToken(match('=') ? EQUAL_EQUAL : EQUAL);
                 break;
             default:
-                // reports the error but keeps scanning to capture ALL errors.
-                Lox.error(line,"Unexpected character.");
+                if (isDigit(c)) {
+                    number();
+                } else {
+                    // reports the error but keeps scanning to capture ALL errors.
+                    Lox.error(line, "Unexpected character.");
+                }
                 break;
         }
     }
 
+    private void number() {
+        while (isDigit(peek())) advance();
+
+        // look for a fractional part.
+        if (peek() == '.' && isDigit(peekNext())) {
+            //consume the "."
+            advance();
+
+            while (isDigit(peek())) advance();
+        }
+
+        addToken(NUMBER,
+                Double.parseDouble(source.substring(start, current)));
+    }
+
+    private void string() {
+        while (peek() != '"' && !isAtEnd()) {
+            if (peek() == '\n') line++;
+            advance();
+        }
+
+        if (isAtEnd()) {
+            Lox.error(line, "Unterminated string.");
+            return;
+        }
+        advance();
+
+        String value = source.substring(start + 1, current + 1);
+        addToken(STRING, value);
+    }
+
+    private boolean isDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
     /**
      * Look at current char without advancing.
+     *
      * @return
      */
     private char peek() {
-        if(isAtEnd()) return ('\0');
+        if (isAtEnd()) return ('\0');
 
-        return  source.charAt(current);
+        return source.charAt(current);
+    }
+
+
+    private char peekNext() {
+        if (current + 1 >= source.length()) return ('\0');
+
+        return source.charAt(current + 1);
     }
 
     /**
@@ -113,7 +184,6 @@ public class Scanner {
     }
 
     /**
-     *
      * @return whether scanner has finished reading the source file
      */
     private boolean isAtEnd() {
@@ -121,7 +191,7 @@ public class Scanner {
     }
 
     /**
-     *  returns current character and goes to the next character in the source file.
+     * returns current character and goes to the next character in the source file.
      *
      * @return
      */
